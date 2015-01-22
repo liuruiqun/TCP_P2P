@@ -127,6 +127,7 @@ int getAllUserHandle(int socket, sMessage_t *sMsg_ptr, pthread_mutex_t *mutex, l
 
 void * handleConnectedSocket(void *params) {
 	sHandleParams_t *ptr = (sHandleParams_t *)params;
+	//在线程退出之前一定要free掉ptr指向的heap上的内存空间，不然会造成内存泄露
 	if(ptr == NULL)
 		return (void*)-1;
 
@@ -154,7 +155,8 @@ void * handleConnectedSocket(void *params) {
 		memset(&rMsg, 0, sizeof(sMessage_t));
 
 		ssize_t reval = ::recv(ptr->sock, &rMsg, sizeof(sMessage_t), 0);
-		//NOTE: when the peer socket close and there is nothing in RecvQ, the recv return 0;
+		//NOTE: when the peer socket close ，furthermore there is nothing in RecvQue, the recv routine returns 0;
+		
 		if(reval == sizeof(sMessage_t)) {
 			switch(rMsg.msgType) {
 				case LOGIN :
@@ -183,8 +185,9 @@ void * handleConnectedSocket(void *params) {
 		else
 		{	
 			if(strlen(clientName) > 0) {
+				//当用户异常退出时的处理
 				strcpy(rMsg.userInfo.userName, clientName);
-				logoutHandle(&rMsg, ptr->mutex_ptr, ptr->onlineList_ptr);
+				logoutHandle(&rMsg, ptr->mutex_ptr, ptr->onlineList_ptr); 
 			}
 			close(ptr->sock);
 			delete ptr;
@@ -210,7 +213,7 @@ int main() {
 
 	printf("SERVER SRARTED\n");
 
-	pthread_mutex_t mutex;
+	pthread_mutex_t mutex;   //互斥量用于保护对在线列表的访问
 	pthread_mutex_init(&mutex, 0);
 
 	sockaddr_in clientAddr;
@@ -221,7 +224,7 @@ int main() {
 
 		memset(&clientAddr, 0, sizeof(sockaddr_in));
 		clientAddrLen = sizeof(sockaddr_in);
-
+		//NOTE: initiate the clientAddrLen before call the accept routine.
 		int newConnectedSocket = accept(listener, (sockaddr *)&clientAddr, &clientAddrLen);
 		if(newConnectedSocket == -1) {
 			printf("ACCEPT ERROR\n");
@@ -243,7 +246,7 @@ int main() {
 		param_ptr->mutex_ptr = &mutex;
 		param_ptr->onlineList_ptr = &onlineList;
 		param_ptr->sock = newConnectedSocket;
-
+		//创建新线程处理新建立的连接
 		pthread_t tid;
 		if(pthread_create(&tid, NULL, handleConnectedSocket, param_ptr) != 0){
 			delete param_ptr;
