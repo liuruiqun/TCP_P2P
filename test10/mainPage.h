@@ -53,8 +53,10 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 			A_REVERSE,
 			true,
 			false);
-	if(currentChatingListWidget == NULL)
+	if(currentChatingListWidget == NULL) {
+		destroyCDKScroll(onlineListWidget);
 		return -1;
+	}
 
 	displayWidget = newCDKSwindow(cdkscreen,
 			30, 0,
@@ -63,8 +65,11 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 			50,
 			true,
 			false);
-	if(displayWidget == NULL)
+	if(displayWidget == NULL) {
+		destroyCDKScroll(onlineListWidget);
+		destroyCDKScroll(currentChatingListWidget);
 		return -1;
+	}
 
 	inputWidget = newCDKMentry(cdkscreen,
 			30, 17,
@@ -74,8 +79,12 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 			true,
 			false
 			);
-	if(inputWidget == NULL)
+	if(inputWidget == NULL) {
+		destroyCDKScroll(onlineListWidget);
+		destroyCDKScroll(currentChatingListWidget);
+		destroyCDKSwindow(displayWidget);
 		return -1;
+	}
 
 	drawCDKScroll(onlineListWidget, true);
 	drawCDKScroll(currentChatingListWidget, true);
