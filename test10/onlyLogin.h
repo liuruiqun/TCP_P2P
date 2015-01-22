@@ -45,18 +45,24 @@ int onlyLogin(CDKSCREEN *cdkscreen, int TCPClientSocket, sUserInfo_t *localUserI
 			20, 0, 64 - 1,
 			true,
 			false);
-	if(loginEntry == NULL)
+	if(loginEntry == NULL) {
+		close(TCPClientSocket);
 		return -1;
+	}
 
 	temp = activateCDKEntry(loginEntry, 0);
 
 	while(true) {
 		if(loginEntry->exitType == vESCAPE_HIT) {
+			close(TCPClientSocket);
 			destroyCDKEntry(loginEntry);
 			return -1;
 		}
 
-		if(strlen(temp) != 0) {
+		if(strlen(temp) > 0) {
+			memset(&loginMsg, 0, sizeof(sMessage_t));
+			memset(&LoginReplyMsg, 0, sizeof(sMessage_t));
+
 			loginMsg.msgType = LOGIN;
 			strcpy(loginMsg.userInfo.userName, temp);
 			loginMsg.userInfo.ip = localUserInfo->ip;
@@ -81,6 +87,8 @@ int onlyLogin(CDKSCREEN *cdkscreen, int TCPClientSocket, sUserInfo_t *localUserI
 			else
 				popupLabel(cdkscreen, (CDK_CSTRING2)promptMsg, 1);
 		}
+
+		cleanCDKEntry(loginEntry);
 
 		temp = activateCDKEntry(loginEntry, 0);
 	}

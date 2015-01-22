@@ -2,6 +2,8 @@
 #define INITIATESOCKET_H
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <memory.h>
@@ -33,7 +35,7 @@ int initiateTCPListener(int nPort, int nLengthOfQueueOfListen, char * strBoundIP
 	if(strBoundIP == NULL)
 		localAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 	else {
-		if(::inet_pton(AF_INET, strBoundIP, &localAddress.sin_addr) != 1) {
+		if(::inet_pton(AF_INET, strBoundIP, &localAddress.sin_addr.s_addr) != 1) {
 			::close(listener);
 			return -1;
 		}

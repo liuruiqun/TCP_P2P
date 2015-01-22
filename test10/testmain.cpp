@@ -1,6 +1,8 @@
 #include <cdk.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <memory.h>
@@ -28,8 +30,10 @@ int main() {
 		return -1;
 			
 	sockaddr_in TCPServerAddress;
+	memset(&TCPServerAddress, 0, sizeof(sockaddr_in));
+
 	TCPServerAddress.sin_family = AF_INET;
-	if(::inet_pton(AF_INET, "127.0.0.1", &TCPServerAddress.sin_addr) == -1){
+	if(::inet_pton(AF_INET, "127.0.0.1", &TCPServerAddress.sin_addr.s_addr) == -1){
 		close(listener);
 		return -1;
 	}
@@ -57,7 +61,7 @@ int main() {
 		return -1;
 
 	}
-/*
+
 
 	sMainPage_t main_page;
 
@@ -70,9 +74,11 @@ int main() {
 	destroyCDKScroll(main_page.onlineListWidget);
 	destroyCDKScroll(main_page.currentChatingListWidget);
 	destroyCDKSwindow(main_page.displayWidget);
-	destroyCDKMentry(main_page.inputWidget);*/
-	close(listener);
+	destroyCDKMentry(main_page.inputWidget);
 	destroyCDKScreen(cdkscreen);
 	endCDK();
+	
+	close(TCPClientSocket);
+	close(listener);
 	return 0;
 }
