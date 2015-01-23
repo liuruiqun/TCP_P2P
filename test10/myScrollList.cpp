@@ -29,6 +29,14 @@ int main() {
 
 	activateCDKScroll(onlineList, 0);
 
+	setCDKScroll(onlineList,
+			item2,
+			6,
+			false,
+			A_REVERSE,
+			true);
+	activateCDKScroll(onlineList, 0);
+
 	destroyCDKScroll(onlineList);
 	destroyCDKScreen(cdkscreen);
 	endCDK();

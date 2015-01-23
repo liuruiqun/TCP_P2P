@@ -58,7 +58,7 @@ int loginHandle(int socket, sMessage_t *rMsg_ptr, sMessage_t *sMsg_ptr, pthread_
 	}
 	pthread_mutex_unlock(mutex);
 
-	if(send(socket, sMsg_ptr, sizeof(sMessage_t), 0) == -1) {
+	if(send(socket, sMsg_ptr, sizeof(sMessage_t), 0) != sizeof(sMessage_t)) {
 		close(socket);
 		return -1;
 	}
@@ -105,7 +105,7 @@ int getAllUserHandle(int socket, sMessage_t *sMsg_ptr, pthread_mutex_t *mutex, l
 	sMsg_ptr->msgType = NUMOFUSER;
 	(sMsg_ptr->userInfo).ip = userNum;
 
-	if(send(socket, sMsg_ptr, sizeof(sMessage_t), 0) == -1) {
+	if(send(socket, sMsg_ptr, sizeof(sMessage_t), 0) != sizeof(sMessage_t)) {
 		close(socket);
 		return -1;
 	}
@@ -114,7 +114,7 @@ int getAllUserHandle(int socket, sMessage_t *sMsg_ptr, pthread_mutex_t *mutex, l
 	for(it = userList_copy.begin(); it != userList_copy.end(); it++) {
 		sMsg_ptr->msgType = JUSTUSERINFO;
 		(sMsg_ptr->userInfo) = (*it);
-		if(send(socket, sMsg_ptr, sizeof(sMessage_t), 0) == -1) {
+		if(send(socket, sMsg_ptr, sizeof(sMessage_t), 0) != sizeof(sMessage_t)) {
 			close(socket);
 			return -1;
 		}
@@ -141,6 +141,13 @@ void * handleConnectedSocket(void *params) {
 		delete ptr;
 		return (void*)-1;
 	}
+
+	FILE* inStream = ::fdopen(ptr->sock, "r");
+	if(inStream == NULL) {
+		close(ptr->sock);
+		delete ptr;
+		return (void*)-1;
+	}
 	
 	pthread_detach(pthread_self());
 
@@ -154,14 +161,15 @@ void * handleConnectedSocket(void *params) {
 		memset(&sMsg, 0, sizeof(sMessage_t));
 		memset(&rMsg, 0, sizeof(sMessage_t));
 
-		ssize_t reval = ::recv(ptr->sock, &rMsg, sizeof(sMessage_t), 0);
+		size_t readNum = ::fread(&rMsg, sizeof(sMessage_t), 1, inStream);
 		//NOTE: when the peer socket close ，furthermore there is nothing in RecvQue, the recv routine returns 0;
 		
-		if(reval == sizeof(sMessage_t)) {
+		if(readNum == 1) {
 			switch(rMsg.msgType) {
 				case LOGIN :
 					if(loginHandle(ptr->sock, &rMsg, &sMsg, ptr->mutex_ptr, ptr->onlineList_ptr, clientName) == -1) {
 						delete ptr;
+						fclose(inStream);
 						return (void*)-1;
 					}
 					break;
@@ -169,12 +177,14 @@ void * handleConnectedSocket(void *params) {
 					if(logoutHandle(&rMsg, ptr->mutex_ptr, ptr->onlineList_ptr) == -1) {
 						close(ptr->sock);
 						delete ptr;
+						fclose(inStream);
 						return (void*)-1;
 					}
 					break;
 				case GETALLUSER :
 					if(getAllUserHandle(ptr->sock, &sMsg, ptr->mutex_ptr, ptr->onlineList_ptr) == -1) {
 						delete ptr;
+						fclose(inStream);
 						return (void*)-1;
 					}
 					break;
@@ -191,6 +201,7 @@ void * handleConnectedSocket(void *params) {
 			}
 			close(ptr->sock);
 			delete ptr;
+			fclose(inStream);
 			return (void*)-1;
 		}
 
@@ -198,6 +209,7 @@ void * handleConnectedSocket(void *params) {
 
 	close(ptr->sock);
 	delete ptr;
+	fclose(inStream);
 	return NULL;
 }
 

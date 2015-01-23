@@ -18,8 +18,8 @@
 
 using std::list;
 
-int refreshOnlineList(int TCPClientSocket, CDKSCROLL *onlineListWidget, list<sUserInfo_t> *onlineList_ptr);
 
+int refreshOnlineList(CDKSCROLL *onlineListWidget, int TCPClientSocket, FILE *TCPClientStream, list<sUserInfo_t> *onlineList_ptr);
 
 int main() {
 	
@@ -52,12 +52,19 @@ int main() {
 		return -1;
 	}
 
+	FILE *TCPClientStream = ::fdopen(TCPClientSocket, "r");
+	if(TCPClientStream == NULL) {
+		close(TCPClientSocket);
+//		close(listener);
+		return -1;
+	}
+
 	cursesWin = initscr();
 	cdkscreen = initCDKScreen(cursesWin);
 
 	initCDKColor();
 
-	int loginState = onlyLogin(cdkscreen, TCPClientSocket, &userInformation);
+	int loginState = onlyLogin(cdkscreen, TCPClientSocket, TCPClientStream, &userInformation);
 
 	if(loginState == -1) {
 //		close(listener);
@@ -75,6 +82,7 @@ int main() {
 	if(reval == -1) {
 		destroyCDKScreen(cdkscreen);
 		endCDK();
+		fclose(TCPClientStream);
 		close(TCPClientSocket);
 		return -1;
 	}
@@ -84,7 +92,7 @@ int main() {
 	//get the current online user from server.
 	//
 	//
-	refreshOnlineList(TCPClientSocket, main_page.onlineListWidget, &onlineList);
+	refreshOnlineList(main_page.onlineListWidget, TCPClientSocket, TCPClientStream, &onlineList);
 
 	activateCDKMentry(main_page.inputWidget, 0);
 
@@ -94,23 +102,34 @@ int main() {
 	destroyCDKMentry(main_page.inputWidget);
 	destroyCDKScreen(cdkscreen);
 	endCDK();
-	
+
+	fclose(TCPClientStream);	
 	close(TCPClientSocket);
 //	close(listener);
 	return 0;
 }
 
 
-int refreshOnlineList(int TCPClientSocket, CDKSCROLL *onlineListWidget, list<sUserInfo_t> *onlineList_ptr) {
+int refreshOnlineList(CDKSCROLL *onlineListWidget, int TCPClientSocket, FILE *TCPClientStream, list<sUserInfo_t> *onlineList_ptr) {
 	
 	if(TCPClientSocket == -1) {
+		if(TCPClientStream != NULL)
+			fclose(TCPClientStream);
+		return -1;
+	}
+	if(TCPClientStream == NULL) {
+		close(TCPClientSocket);
 		return -1;
 	}
 
 	if(onlineList_ptr == NULL || onlineListWidget == NULL) {
+		fclose(TCPClientStream);
 		close(TCPClientSocket);
 		return -1;
 	}
+
+	CLogger debug("Debug.txt");
+	char buffer[1024];
 
 	sMessage_t sMsg;
 	sMessage_t rMsg;
@@ -119,42 +138,48 @@ int refreshOnlineList(int TCPClientSocket, CDKSCROLL *onlineListWidget, list<sUs
 
 	sMsg.msgType = GETALLUSER;
 	ssize_t sendNum = ::send(TCPClientSocket, &sMsg, sizeof(sMessage_t), 0);
-	if(sendNum == sizeof(sMessage_t)) {
-		
-		ssize_t readNum = ::recv(TCPClientSocket, &rMsg, sizeof(sMessage_t), 0);
-
-		if(readNum == sizeof(sMessage_t)) {
-			if(rMsg.msgType == NUMOFUSER) {
-				//clear current onlineList;
-				//
-				onlineList_ptr->clear();
-				for(int i = 0; i < rMsg.userInfo.ip; i++) {
-					sMessage_t rMsg2;
-					ssize_t readNum2 = ::recv(TCPClientSocket, &rMsg2, sizeof(sMessage_t), 0);
-					if(readNum2 == sizeof(sMessage_t)) {
-						if(rMsg2.msgType == JUSTUSERINFO)
-							onlineList_ptr->push_back(rMsg2.userInfo);
-					}
-					else{
-						close(TCPClientSocket);
-						return -1;
-					}
-				}
-			}
-		}
-		else {
-			close(TCPClientSocket);
-			return -1;
-		}
-	}
-	else {
+	if(sendNum != sizeof(sMessage_t)) {
+		fclose(TCPClientStream);
 		close(TCPClientSocket);
 		return -1;
 	}
 
+	size_t readNum = ::fread(&rMsg, sizeof(sMessage_t), 1, TCPClientStream);
+	if(readNum != 1) {
+		fclose(TCPClientStream);
+		close(TCPClientSocket);
+		return -1;
+	}
+
+	snprintf(buffer, 1024, "RECV %d NUM: %d", rMsg.msgType, rMsg.userInfo.ip);
+	debug.writeLog(buffer);
+
+	if(rMsg.msgType == NUMOFUSER) {
+		//clear current onlineList;
+		//
+		onlineList_ptr->clear();
+		for(unsigned int i = 0; i < rMsg.userInfo.ip; i++) {
+			sMessage_t rMsg2;
+			size_t readNum2 = ::fread(&rMsg2, sizeof(sMessage_t), 1, TCPClientStream);
+			if(readNum2 != 1) {
+				fclose(TCPClientStream);
+				close(TCPClientSocket);
+				return -1;
+			}
+
+			snprintf(buffer, 1024, "RECV %d USER: %s", rMsg2.msgType, rMsg2.userInfo.userName);
+			debug.writeLog(buffer);
+
+			if(rMsg2.msgType == JUSTUSERINFO)
+				onlineList_ptr->push_back(rMsg2.userInfo);
+		}
+	}
+
+
 	int sizeOfOnlineList = onlineList_ptr->size();
-	char **item = new char*[sizeOfOnlineList];
-	if(item == NULL) {
+	char **items = new char*[sizeOfOnlineList];
+	if(items == NULL) {
+		fclose(TCPClientStream);
 		close(TCPClientSocket);
 		return -1;
 	}
@@ -168,16 +193,18 @@ int refreshOnlineList(int TCPClientSocket, CDKSCROLL *onlineListWidget, list<sUs
 			return -1;
 		}
 		strcpy(temp, it->userName);
-		item[i] = temp;
+		items[i] = temp;
 		i++;
 	}
-
+	
 	setCDKScroll(onlineListWidget,
-			item,
+			items,
 			sizeOfOnlineList,
 			false,
 			A_REVERSE,
 			true);
+	
+	activateCDKScroll(onlineListWidget, 0);
 
 	return 0;
 }

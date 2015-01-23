@@ -34,6 +34,15 @@ int main() {
 		cout << it->i << endl;
 	}
 
+
+	list<test_t> *list_ptr;
+	list_ptr = &myList;
+
+	list<test_t> newList(*list_ptr);
+
+	for(auto it = newList.begin(); it != newList.end(); it++) {
+		cout << it->i << endl;
+	}
 	return 0;
 }
 
