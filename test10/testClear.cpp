@@ -43,6 +43,9 @@ int main() {
 	for(auto it = newList.begin(); it != newList.end(); it++) {
 		cout << it->i << endl;
 	}
+	auto it = newList.begin();
+	it++;
+	cout << it->i << endl;
 	return 0;
 }
 

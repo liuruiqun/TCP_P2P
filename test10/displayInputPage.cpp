@@ -153,21 +153,6 @@ int jumpFromInputWidgetToDisplayWidget(EObjectType cdktype,
 
 
 
-int writeToDisplayWidget(CDKSWINDOW *displayWidget, char *info) {
-	if(displayWidget == NULL || info == NULL)
-		return -1;
-	char buf[41];
-	int infoLen = strlen(info);
-	int i;
-	for(i = 0; i <= infoLen/40; i++) {
-		strncpy(buf, info + 40*i, 40);
-		if((i == infoLen/40) && ((infoLen % 40) == 0))
-			break;
-		addCDKSwindow(displayWidget, buf, BOTTOM);
-	}
-	return 0;
-}
-
 
 
 

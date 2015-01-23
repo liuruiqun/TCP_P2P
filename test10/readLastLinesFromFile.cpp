@@ -49,8 +49,11 @@ int readLastLinesFromFile(const char *fileName, char *message[], int *lines) {
 			else{
 				int length = endOfLine - startOfLine;
 				char *temp = new char[length + 1];
-				if(temp == NULL)
+				if(temp == NULL) {
+					for(int i = 0; i < (*lines); i++)
+						delete message[i];
 					return -1;
+				}
 				memcpy(temp, buffer + startOfLine, length);
 				*(temp + length) = '\0';
 				message[(*lines)] = temp;

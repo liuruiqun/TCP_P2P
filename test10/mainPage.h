@@ -3,15 +3,8 @@
 
 #include <cdk.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <string.h>
-
-typedef struct {
-	CDKMENTRY *inputWidget;
-	CDKSWINDOW *displayWidget;
-	CDKSCROLL *onlineListWidget;
-	CDKSCROLL *currentChatingListWidget;
-}sMainPage_t;
+#include "./proto.h"
 
 
 int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams);
@@ -23,9 +16,11 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 	CDKMENTRY *inputWidget;
 	CDKSCROLL *onlineListWidget;
 	CDKSCROLL *currentChatingListWidget;
+	CDKSCROLL *requestListwidget;
 
 	const char *onlineTitle = "<C></B/24>Online List";
 	const char *chatTitle = "<C></B/24>Chat List";
+	const char *requestTitle ="<C></B/24>Request List";
 
 	if(cdkscreen == NULL)
 		return -1;
@@ -33,7 +28,7 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 	onlineListWidget = newCDKScroll(cdkscreen,
 			8, 0,
 			NONE,
-			17, 20,
+			12, 20,
 			onlineTitle,
 			(CDK_CSTRING2)NULL, 0,
 			false,
@@ -57,6 +52,23 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 		destroyCDKScroll(onlineListWidget);
 		return -1;
 	}
+	
+	requestListwidget = newCDKScroll(cdkscreen,
+			8, 12,
+			NONE,
+			5, 20,
+			requestTitle,
+			(CDK_CSTRING2)NULL, 0,
+			false,
+			A_REVERSE,
+			true,
+			false);
+
+	if(requestListwidget == NULL) {
+		destroyCDKScroll(onlineListWidget);
+		destroyCDKScroll(currentChatingListWidget);
+		return -1;
+	}
 
 	displayWidget = newCDKSwindow(cdkscreen,
 			30, 0,
@@ -68,6 +80,7 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 	if(displayWidget == NULL) {
 		destroyCDKScroll(onlineListWidget);
 		destroyCDKScroll(currentChatingListWidget);
+		destroyCDKScroll(requestListwidget);
 		return -1;
 	}
 
@@ -82,17 +95,21 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 	if(inputWidget == NULL) {
 		destroyCDKScroll(onlineListWidget);
 		destroyCDKScroll(currentChatingListWidget);
+		destroyCDKScroll(requestListwidget);
 		destroyCDKSwindow(displayWidget);
 		return -1;
 	}
 
 	drawCDKScroll(onlineListWidget, true);
 	drawCDKScroll(currentChatingListWidget, true);
+	drawCDKScroll(requestListwidget, true);
 	drawCDKSwindow(displayWidget, true);
 	drawCDKMentry(inputWidget, true);
-
+	
+	returnParams->cdkscreen = cdkscreen;
 	returnParams->onlineListWidget = onlineListWidget;
 	returnParams->currentChatingListWidget = currentChatingListWidget;
+	returnParams->requestListwidget = requestListwidget;
 	returnParams->displayWidget = displayWidget;
 	returnParams->inputWidget = inputWidget;
 
