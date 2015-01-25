@@ -100,7 +100,9 @@ typedef struct {
 typedef struct {
 	sChatNode_t *activateChatNode_ptr;
 	pthread_mutex_t *activateChatNode_mutex;
+	CDKSCREEN *cdkscreen;
 	CDKSWINDOW *displayWidget;
+	pthread_mutex_t *displayWidget_mutex;
 } sDisplayWidgetParams_t;
 
 typedef struct {

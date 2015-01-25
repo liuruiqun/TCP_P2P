@@ -101,8 +101,7 @@ int endChat(sChatNode_t *chatNode, sChatResources_t *ptr) {
 	pthread_mutex_lock(ptr->activateChatNode_mutex);
 	if(strcmp((ptr->activateChatNode_ptr)->peerName, chatNode->peerName) == 0) {
 		strcpy((ptr->activateChatNode_ptr)->peerName, "");
-		cleanCDKSwindow((ptr->main_page_ptr)->displayWidget);
-		writeToDisplayWidget((ptr->main_page_ptr)->displayWidget, "NO ACTIVE CHAT");
+		writeToDisplayWidget((ptr->main_page_ptr)->displayWidget, "CHAT IS TERMINATED BY YOU");
 	}
 	pthread_mutex_unlock(ptr->activateChatNode_mutex);
 

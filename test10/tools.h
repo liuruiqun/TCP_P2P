@@ -173,7 +173,7 @@ int loadContext(const char *fileName, CDKSWINDOW *displayWidget) {
 	if(displayWidget == NULL)
 		return -1;
 	int lines;
-	char *history[100];
+	char *history[1000];
 
 	if(readLastLinesFromFile(fileName, history, &lines) == -1)
 		return -1;

@@ -19,7 +19,7 @@ int readLastLinesFromFile(const char *fileName, char *message[], int *lines) {
 	
 	(*lines) = 0;
 	off_t fileLen;
-	char buffer[520];
+	char buffer[10240];
 	bool notFromBegin = false;
 	int fd = open(fileName, O_RDONLY, 0);
 
@@ -29,10 +29,10 @@ int readLastLinesFromFile(const char *fileName, char *message[], int *lines) {
 
 
 	//read at most 512 Bytes from file.
-	if(fileLen < 512)
+	if(fileLen < 10240)
 		lseek(fd, 0, SEEK_SET);
 	else {
-		lseek(fd, -512, SEEK_END);
+		lseek(fd, -10240, SEEK_END);
 		notFromBegin = true;
 	}
 

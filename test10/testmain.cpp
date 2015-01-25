@@ -23,6 +23,7 @@
 #include "./handleDisplayWidget.h"
 #include "./handleAccept.h"
 #include "./handleInputWidget.h"
+//#include "./loadHistory.h"
 
 using std::list;
 
@@ -274,8 +275,32 @@ int main() {
 
 	bindCDKObject(vSCROLL, main_page.onlineListWidget, 'R', refreshOnlineListWidgetKeyFunc, refreshOnlineListWidgetParams);
 
+/*
+	sDisplayWidgetParams_t *loadHistoryParams = new sDisplayWidgetParams_t;
+	if(loadHistoryParams == NULL) {
+		close(listener);
+		fclose(TCPClientStream);
+		close(TCPClientSocket);
+		deleteAllCDKWidgets(main_page);
+		delete acceptThreadArgs;
+		delete onlineListWidgetParams;
+		delete chatingListWidgetParams;
+		delete displayWidgetParams;
+		delete refreshOnlineListWidgetParams;
+		printf("new loadHistoryParams error.\n");
+		return -1;		
+	}
+
+	loadHistoryParams->cdkscreen = main_page.cdkscreen;
+	loadHistoryParams->displayWidget = main_page.displayWidget;
+	loadHistoryParams->displayWidget_mutex = &displayWidget_mutex;
+	loadHistoryParams->activateChatNode_ptr = &activateChatNode;
+	loadHistoryParams->activateChatNode_mutex = &activateChatNode_mutex;
+
+	bindCDKObject(vSWINDOW, main_page.displayWidget, 'H', loadHistory, loadHistoryParams);
+
 	//get the current online user from server.
-	
+*/	
 	if(refreshOnlineList(main_page.onlineListWidget, TCPClientSocket, TCPClientStream, &onlineList) == -1){
 		close(listener);
 		fclose(TCPClientStream);
@@ -286,6 +311,7 @@ int main() {
 		delete chatingListWidgetParams;
 		delete displayWidgetParams;
 		delete refreshOnlineListWidgetParams;
+//		delete loadHistoryParams;
 		printf("refreshOnlineList error.\n");
 		return -1;		
 	}
@@ -304,6 +330,7 @@ int main() {
 		delete chatingListWidgetParams;
 		delete displayWidgetParams;
 		delete refreshOnlineListWidgetParams;
+//		delete loadHistoryParams;
 		printf("new inputWidgetParams error.\n");
 		return -1;		
 	}
@@ -325,6 +352,7 @@ int main() {
 	delete chatingListWidgetParams;
 	delete displayWidgetParams;
 	delete refreshOnlineListWidgetParams;
+//	delete loadHistoryParams;
 	delete inputWidgetParams;
 	
 	return reval;	

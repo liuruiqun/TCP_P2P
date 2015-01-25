@@ -1,6 +1,7 @@
 /* $Id: swindow_ex.c,v 1.13 2012/03/21 23:52:34 tom Exp $ */
 
-#include <cdk_test.h>
+#include <cdk.h>
+#include <unistd.h>
 
 #ifdef HAVE_XCURSES
 char *XCursesProgramName = "swindow_ex";
@@ -10,6 +11,7 @@ char *XCursesProgramName = "swindow_ex";
 #define sleep(x) _sleep(x*1000)
 #endif
 
+int loadAllHistory(CDKSCREEN *, CDKSWINDOW *, const char *filename);
 /*
  * Demonstrate a scrolling-window.
  */
@@ -52,7 +54,7 @@ int main (int argc, char **argv)
 
       printf ("Cannot create the scrolling window. ");
       printf ("Is the window too small?\n");
-      ExitProgram (EXIT_FAILURE);
+      return -1;
    }
 
    /* Draw the scrolling window. */
@@ -110,9 +112,12 @@ int main (int argc, char **argv)
       popupLabel (cdkscreen, (CDK_CSTRING2) mesg, 3);
    }
 
+   loadAllHistory(cdkscreen, swindow, "./swindow_ex.c");
+   activateCDKSwindow (swindow, 0);
+   
    /* Clean up. */
    destroyCDKSwindow (swindow);
    destroyCDKScreen (cdkscreen);
    endCDK ();
-   ExitProgram (EXIT_SUCCESS);
+   return 0;
 }

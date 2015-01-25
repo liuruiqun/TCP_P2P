@@ -74,7 +74,7 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 			30, 0,
 			16, 42,
 			NULL,
-			50,
+			2000,
 			true,
 			false);
 	if(displayWidget == NULL) {

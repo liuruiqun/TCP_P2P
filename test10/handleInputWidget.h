@@ -31,6 +31,8 @@ int handleInputWidget(sInputWidgetParams_t *ptr) {
 	activateCDKMentry(inputWidget, NULL);
 
 	while(inputWidget->exitType != vESCAPE_HIT) {
+
+		refreshCDKScreen(cdkscreen);
 	
 		pthread_mutex_lock(ptr->activateChatNode_mutex);
 		activateChatNode = *(ptr->activateChatNode_ptr);
