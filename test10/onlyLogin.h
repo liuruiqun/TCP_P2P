@@ -19,19 +19,14 @@ int onlyLogin(CDKSCREEN *cdkscreen, int TCPClientSocket, FILE *inStream, sUserIn
 	sMessage_t LoginReplyMsg;
 
 	if(TCPClientSocket == -1) {
-		if(inStream != NULL)
-			fclose(inStream);
 		return -1;
 	}
 
 	if(inStream == NULL) {
-		close(TCPClientSocket);
 		return -1;
 	}
 
 	if(cdkscreen == NULL || localUserInfo == NULL) {
-		fclose(inStream);
-		close(TCPClientSocket);
 		return -1;
 	}
 	
@@ -55,8 +50,6 @@ int onlyLogin(CDKSCREEN *cdkscreen, int TCPClientSocket, FILE *inStream, sUserIn
 			true,
 			false);
 	if(loginEntry == NULL) {
-		fclose(inStream);
-		close(TCPClientSocket);
 		return -1;
 	}
 
@@ -64,8 +57,6 @@ int onlyLogin(CDKSCREEN *cdkscreen, int TCPClientSocket, FILE *inStream, sUserIn
 
 	while(true) {
 		if(loginEntry->exitType == vESCAPE_HIT) {
-			fclose(inStream);
-			close(TCPClientSocket);
 			destroyCDKEntry(loginEntry);
 			return -1;
 		}
@@ -80,15 +71,11 @@ int onlyLogin(CDKSCREEN *cdkscreen, int TCPClientSocket, FILE *inStream, sUserIn
 			loginMsg.userInfo.port = localUserInfo->port;
 		
 			if(send(TCPClientSocket, &loginMsg, sizeof(sMessage_t), 0) != sizeof(sMessage_t)) {
-				fclose(inStream);
-				close(TCPClientSocket);
 				destroyCDKEntry(loginEntry);
 				return -1;
 			}	
 
 			if(::fread(&LoginReplyMsg, sizeof(sMessage_t), 1, inStream) != 1) {
-				fclose(inStream);
-				close(TCPClientSocket);
 				destroyCDKEntry(loginEntry);
 				return -1;
 			}

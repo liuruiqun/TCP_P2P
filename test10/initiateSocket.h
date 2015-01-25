@@ -7,8 +7,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <memory.h>
+#include "./proto.h"
 
-int initiateTCPListener(int nPort, int nLengthOfQueueOfListen, char * strBoundIP);
+int initiateTCPListener(int nLengthOfQueueOfListen, sUserInfo_t *userInfo_ptr);
 int initiateUDPSocket(int nPort, char *strBoundIP);
 int initiateTCPClient(sockaddr_in TCPServerAddress);
 
@@ -23,28 +24,22 @@ int initiateTCPClient(sockaddr_in TCPServerAddress) {
 	return clientSocket;
 }
 
-int initiateTCPListener(int nPort, int nLengthOfQueueOfListen, char * strBoundIP) {
+int initiateTCPListener(int nLengthOfQueueOfListen, sUserInfo_t *userInfo_ptr) {
 	int listener = socket(AF_INET, SOCK_STREAM, 0);
 	if(listener == -1)
 		return -1;
 
-	sockaddr_in localAddress;
-	memset(&localAddress, 0, sizeof(sockaddr_in));
+	sockaddr_in listenerAddr;
+	memset(&listenerAddr, 0, sizeof(sockaddr_in));
 
-	localAddress.sin_family = AF_INET;
-	if(strBoundIP == NULL)
-		localAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-	else {
-		if(::inet_pton(AF_INET, strBoundIP, &localAddress.sin_addr.s_addr) != 1) {
-			::close(listener);
-			return -1;
-		}
+	listenerAddr.sin_family = AF_INET;
+	if(::inet_pton(AF_INET, "127.0.0.1", &listenerAddr.sin_addr.s_addr) != 1) {
+		close(listener);
+		return -1;
 	}
-
-	localAddress.sin_port = htons(nPort);
-
-	if(::bind(listener, (sockaddr *)&localAddress, sizeof(sockaddr_in)) == -1) {
-		::close(listener);
+	listenerAddr.sin_port = htons(0);
+	if(::bind(listener, (sockaddr *)&listenerAddr, sizeof(sockaddr_in)) == -1) {
+		close(listener);
 		return -1;
 	}
 
@@ -53,8 +48,17 @@ int initiateTCPListener(int nPort, int nLengthOfQueueOfListen, char * strBoundIP
 		return -1;
 	}
 
-	return listener;
+	sockaddr_in localListenSocketAddr;
+	socklen_t localListenSocketAddrLen = sizeof(sockaddr_in);
 
+	if(::getsockname(listener, (sockaddr *)&localListenSocketAddr, &localListenSocketAddrLen) == -1) {
+		close(listener);
+		return -1;
+	}
+
+	userInfo_ptr->ip = ntohl(localListenSocketAddr.sin_addr.s_addr);
+	userInfo_ptr->port = ntohs(localListenSocketAddr.sin_port);
+	return listener;
 }
 
 int initiateUDPSocket(int nPort, char *strBoundIP) {

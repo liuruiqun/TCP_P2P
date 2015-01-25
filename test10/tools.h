@@ -4,7 +4,7 @@
 #include <string.h>
 #include <list>
 #include "./proto.h"
-
+#include "readLastLinesFromFile.h"
 using std::list;
 
 
@@ -46,6 +46,23 @@ int deleteChatNode(char *peerName, list<sChatNode_t> *chatingList_ptr) {
 			return 0;
 		}
 	return -1;
+}
+
+sChatNode_t getChatNode(list<sChatNode_t> *chatingList_ptr, int index)
+{
+	sChatNode_t chatNode;
+	strcpy(chatNode.peerName, "");
+
+	list<sChatNode_t>::iterator it;
+	
+	it = chatingList_ptr->begin();
+	for(int i = 0; i < index; i++)
+		it++;
+
+	if(it != chatingList_ptr->end())
+		chatNode = *it;
+
+	return chatNode;	
 }
 
 int writeToDisplayWidget(CDKSWINDOW *displayWidget, char *info) {
@@ -95,7 +112,9 @@ int flushChatingListWidget(CDKSCROLL *chatingListWidget, list<sChatNode_t> *chat
 			false,
 			A_REVERSE,
 			true);
+
 	drawCDKScroll(chatingListWidget, true);
+	raiseCDKObject(vSCROLL, chatingListWidget);
 
 	for(i = 0; i < sizeOfChatList; i++)
 		delete items[i];
@@ -136,13 +155,35 @@ int flushOnlineListWidget(CDKSCROLL *onlineListWidget, list<sUserInfo_t> *online
 			false,
 			A_REVERSE,
 			true);
+
 	drawCDKScroll(onlineListWidget, true);
+	raiseCDKObject(vSCROLL, onlineListWidget);
 
 	for(i = 0; i < sizeOfOnlineList; i++){
 		delete items[i];
 	}
 
 	delete items;
+	return 0;
+}
+
+int loadContext(const char *fileName, CDKSWINDOW *displayWidget) {
+	if(fileName == NULL)
+		return -1;
+	if(displayWidget == NULL)
+		return -1;
+	int lines;
+	char *history[100];
+
+	if(readLastLinesFromFile(fileName, history, &lines) == -1)
+		return -1;
+
+	cleanCDKSwindow(displayWidget);
+	for(int i = 0; i < lines; i++) {
+		writeToDisplayWidget(displayWidget, history[i]);
+		delete history[i];
+	}
+
 	return 0;
 }
 

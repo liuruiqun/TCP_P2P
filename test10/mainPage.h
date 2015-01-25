@@ -16,7 +16,7 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 	CDKMENTRY *inputWidget;
 	CDKSCROLL *onlineListWidget;
 	CDKSCROLL *currentChatingListWidget;
-	CDKSCROLL *requestListwidget;
+	CDKSCROLL *requestListWidget;
 
 	const char *onlineTitle = "<C></B/24>Online List";
 	const char *chatTitle = "<C></B/24>Chat List";
@@ -53,7 +53,7 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 		return -1;
 	}
 	
-	requestListwidget = newCDKScroll(cdkscreen,
+	requestListWidget = newCDKScroll(cdkscreen,
 			8, 12,
 			NONE,
 			5, 20,
@@ -64,7 +64,7 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 			true,
 			false);
 
-	if(requestListwidget == NULL) {
+	if(requestListWidget == NULL) {
 		destroyCDKScroll(onlineListWidget);
 		destroyCDKScroll(currentChatingListWidget);
 		return -1;
@@ -80,7 +80,7 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 	if(displayWidget == NULL) {
 		destroyCDKScroll(onlineListWidget);
 		destroyCDKScroll(currentChatingListWidget);
-		destroyCDKScroll(requestListwidget);
+		destroyCDKScroll(requestListWidget);
 		return -1;
 	}
 
@@ -95,21 +95,21 @@ int mainPage(CDKSCREEN *cdkscreen, sMainPage_t *returnParams) {
 	if(inputWidget == NULL) {
 		destroyCDKScroll(onlineListWidget);
 		destroyCDKScroll(currentChatingListWidget);
-		destroyCDKScroll(requestListwidget);
+		destroyCDKScroll(requestListWidget);
 		destroyCDKSwindow(displayWidget);
 		return -1;
 	}
 
 	drawCDKScroll(onlineListWidget, true);
 	drawCDKScroll(currentChatingListWidget, true);
-	drawCDKScroll(requestListwidget, true);
+	drawCDKScroll(requestListWidget, true);
 	drawCDKSwindow(displayWidget, true);
 	drawCDKMentry(inputWidget, true);
 	
 	returnParams->cdkscreen = cdkscreen;
 	returnParams->onlineListWidget = onlineListWidget;
 	returnParams->currentChatingListWidget = currentChatingListWidget;
-	returnParams->requestListwidget = requestListwidget;
+	returnParams->requestListWidget = requestListWidget;
 	returnParams->displayWidget = displayWidget;
 	returnParams->inputWidget = inputWidget;
 

@@ -23,17 +23,21 @@ enum MsgType_t  {
 	LOGSUCCESS = 4,
 	NUMOFUSER = 5,
 	JUSTUSERINFO = 6,
+
+	
 	STARTTCPCHAT = 7,
 	ENDTCPCHAT = 8,
 	AGREETOCHAT = 9,
-	DISAGREETOCHAT = 10
+	DISAGREETOCHAT = 10,
+	DELIMITER = 11
 };
 
 
 //The delimiter of every TCP chat message.
 typedef struct {
+	MsgType_t msgType;    //delimiter or ENDTCPCHAT
 	unsigned int length;
-}sDelimit_t;
+}sChatControlMessage_t;
 
 
 //user information
@@ -55,7 +59,7 @@ typedef struct {
 	CDKSWINDOW *displayWidget;
 	CDKSCROLL *onlineListWidget;
 	CDKSCROLL *currentChatingListWidget;
-	CDKSCROLL *requestListwidget;
+	CDKSCROLL *requestListWidget;
 }sMainPage_t;
 
 typedef struct {
@@ -69,7 +73,7 @@ typedef struct {
 typedef struct {
 	char userName[MAX_NAME_LEN + 1]; //local name. //in
 	char peerName[MAX_NAME_LEN + 1];
-	char** activatePeerName_ptr;  //in and out
+	sChatNode_t *activateChatNode_ptr;  //in and out
 	CLogger *logger_ptr;
 	list<sUserInfo_t> *onlineList_ptr; //in
 	list<sChatNode_t> *chatingList_ptr;//in
@@ -81,8 +85,36 @@ typedef struct {
 	FILE *newLocalSocketStream;
 	pthread_mutex_t *chatingListWidget_mutex; //in
 	pthread_mutex_t *displayWidget_mutex; //in
-	pthread_mutex_t *requestListwidget_mutex;//in
-	pthread_mutex_t *logger_mutex;	
+	pthread_mutex_t *requestListWidget_mutex;//in
+	pthread_mutex_t *logger_mutex;
+	pthread_mutex_t *activateChatNode_mutex;	
 } sChatResources_t;
 
+typedef struct {
+	int listener;  //listen socket
+	CDKSCROLL *requestListWidget;
+	list<sChatNode_t> *requestList_ptr;
+	pthread_mutex_t *requestListWidget_mutex;
+} sRequestParams_t;
+
+typedef struct {
+	sChatNode_t *activateChatNode_ptr;
+	pthread_mutex_t *activateChatNode_mutex;
+	CDKSWINDOW *displayWidget;
+} sDisplayWidgetParams_t;
+
+typedef struct {
+	CDKSCROLL *onlineListWidget;
+	list<sUserInfo_t> *onlineList_ptr;
+	int TCPClientSocket;
+	FILE *TCPClientStream;
+} sRefreshParams_t;
+
+typedef struct {
+	char userName[MAX_NAME_LEN + 1];
+	sMainPage_t *main_page_ptr;
+	sChatNode_t *activateChatNode_ptr;
+	pthread_mutex_t *activateChatNode_mutex;
+	pthread_mutex_t *displayWidget_mutex;
+} sInputWidgetParams_t; 
 #endif
